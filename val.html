@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Be My Valentine?</title>
+  <link rel="stylesheet" href="val.css">
+</head>
+<body>
+  <div class="container">
+
+    <div id="nameInput" class="name-section">
+      <p>It seems this application is build for  you!! Can you please type your name here to confirm your identity?</p>
+      <input type="text" id="userName" placeholder="Enter your name..." />
+      <button onclick="saveName()">Enter</button>
+    </div>
+    <div id="mainContent" class="hidden">
+      <p>Please register yourself with few more details to continue...</p>
+      <button onclick="revealMessage()">Click Me</button>
+      <div id="message" class="hidden">
+        <h2>Will you be my Valentine? 💖</h2>
+      </div>
+    </div>
+    <div id="questionsSection" class="hidden">
+      <h1 id="awesomeHeading">Awesome, <span id="nameDisplay"></span>!</h1>
+      <h2>Let's see how much we know about each other! 💕</h2>
+      <div class="questions-container">
+        <div class="question-card">
+          <label>1. How long have we known each other?</label>
+          <input type="text" class="question-input" id="q1" placeholder="e.g., 2 years" />
+        </div>
+        <div class="question-card">
+          <label>2. What's our favorite memory together?</label>
+          <input type="text" class="question-input" id="q2" placeholder="Tell me..." />
+        </div>
+        <div class="question-card">
+          <label>3. What do you love most about me?</label>
+          <input type="text" class="question-input" id="q3" placeholder="Be honest..." />
+        </div>
+        <div class="question-card">
+          <label>4. Our favorite place to go together is?</label>
+          <input type="text" class="question-input" id="q4" placeholder="Where..." />
+        </div>
+        <div class="question-card">
+          <label>5. In one word, describe our relationship:</label>
+          <input type="text" class="question-input" id="q5" placeholder="One word..." />
+        </div>
+      </div>
+      <button onclick="submitAnswers()" class="submit-btn">I have a question for you 💌</button>
+    </div>
+    <!-- resultSection removed — results are shown on ask.html -->
+  </div>
+
+  <script>
+    // Load name on page load; if final response exists, go to ask page
+    window.onload = function() {
+      const response = localStorage.getItem('valentineResponse');
+      if (response) {
+        window.location.href = 'ask.html';
+        return;
+      }
+      const savedName = localStorage.getItem('userName');
+      if (savedName) {
+        showMainContent();
+      }
+    };
+
+    function saveName() {
+      const name = document.getElementById('userName').value.trim();
+      if (name) {
+        localStorage.setItem('userName', name);
+        showMainContent();
+      } else {
+        alert('Please enter your name!');
+      }
+    }
+
+    function showMainContent() {
+      document.getElementById('nameInput').classList.add('hidden');
+      document.getElementById('mainContent').classList.remove('hidden');
+    }
+
+    function revealMessage() {
+      const name = localStorage.getItem('userName');
+      const answers = localStorage.getItem('userAnswers');
+      
+      if (answers) {
+        // User already answered questions, show result
+          window.location.href = 'ask.html';
+      } else {
+        // Show questions first
+        document.getElementById('nameDisplay').textContent = name;
+        document.getElementById('mainContent').classList.add('hidden');
+        document.getElementById('questionsSection').classList.remove('hidden');
+      }
+    }
+
+    function submitAnswers() {
+      const q1 = document.getElementById('q1').value.trim();
+      const q2 = document.getElementById('q2').value.trim();
+      const q3 = document.getElementById('q3').value.trim();
+      const q4 = document.getElementById('q4').value.trim();
+      const q5 = document.getElementById('q5').value.trim();
+
+      if (!q1 || !q2 || !q3 || !q4 || !q5) {
+        alert('Please answer all questions!');
+        return;
+      }
+
+      const answers = { q1, q2, q3, q4, q5 };
+      localStorage.setItem('userAnswers', JSON.stringify(answers));
+        window.location.href = 'ask.html';
+    }
+
+    // responses moved to ask.html
+  </script>
+</body>
+</html>

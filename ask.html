@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Will You Be My Valentine?</title>
+  <link rel="stylesheet" href="val.css">
+</head>
+<body>
+ 
+
+  <div class="container">
+    <div id="askCard" class="result-card">
+      <h1 id="askHeading" class="big-title">Will you be my Valentine?</h1>
+      <p id="askGreeting" class="subtle"></p>
+      <div id="responseWrap" class="response-wrap">
+        <button class="yes-btn" id="yesBtn">Yes! 💕</button>
+        <button class="no-btn" id="noBtn" disabled aria-disabled="true" tabindex="-1" title="This option is disabled">No??😜 Try me</button>
+      </div>
+      <div id="finalResponse" class="hidden"></div>
+    </div>
+  </div>
+
+  <div id="popper" class="popper hidden" aria-hidden="true"></div>
+
+  <script>
+    // Greeting
+    const name = localStorage.getItem('userName') || '';
+    const greetingEl = document.getElementById('askGreeting');
+    greetingEl.textContent = name ? `Hey ${name}, choose wisely:` : 'Choose wisely:';
+
+    const wrap = document.getElementById('responseWrap');
+    const noBtn = document.getElementById('noBtn');
+    const yesBtn = document.getElementById('yesBtn');
+    const final = document.getElementById('finalResponse');
+
+    // Make the No button run away when the cursor gets close
+    function moveNoBtn() {
+      const wrapRect = wrap.getBoundingClientRect();
+      const btnW = noBtn.offsetWidth;
+      const btnH = noBtn.offsetHeight;
+      const maxX = Math.max(0, wrap.clientWidth - btnW);
+      const maxY = Math.max(0, wrap.clientHeight - btnH);
+      const left = Math.floor(Math.random() * maxX);
+      const top = Math.floor(Math.random() * maxY);
+      noBtn.style.position = 'absolute';
+      noBtn.style.left = left + 'px';
+      noBtn.style.top = top + 'px';
+    }
+
+    // Move on mousemove inside the wrap when cursor near center of noBtn
+    wrap.addEventListener('mousemove', (e) => {
+      const rect = noBtn.getBoundingClientRect();
+      const dx = e.clientX - (rect.left + rect.width / 2);
+      const dy = e.clientY - (rect.top + rect.height / 2);
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 120) moveNoBtn();
+    });
+
+    // Also move when hovering the no button area
+    noBtn.addEventListener('mouseenter', moveNoBtn);
+
+    // Yes button: play pop sound, show popper/confetti and save response
+    yesBtn.addEventListener('click', () => {
+      playPopSound();
+      localStorage.setItem('valentineResponse', 'yes');
+      final.innerHTML = `<h2>🎉 ${name || 'You'}, you said YES! I'm so happy! 💕</h2>`;
+      final.classList.remove('hidden');
+      // show popper with confetti hearts
+      showPopper(`${name || 'You'} said YES!`);
+      // hide buttons
+      wrap.style.pointerEvents = 'none';
+    });
+
+    // Popper / confetti function
+    function showPopper(text) {
+      const pop = document.getElementById('popper');
+      pop.innerHTML = `<div class="popper-card"><h2>${text}</h2></div>`;
+      pop.classList.remove('hidden');
+      pop.setAttribute('aria-hidden', 'false');
+      // create floating hearts
+      for (let i=0;i<20;i++) {
+        const s = document.createElement('span');
+        s.className = 'heart';
+        s.textContent = ['💖','💘','💞','❤️'][Math.floor(Math.random()*4)];
+        s.style.left = (50 + (Math.random()-0.5)*80) + '%';
+        s.style.animationDelay = (Math.random()*0.6) + 's';
+        pop.appendChild(s);
+      }
+      setTimeout(()=>{ pop.classList.add('fading'); }, 2200);
+      setTimeout(()=>{ pop.classList.add('hidden'); pop.innerHTML=''; pop.classList.remove('fading'); pop.setAttribute('aria-hidden','true'); }, 3000);
+    }
+
+    // Small pop/confetti sound using Web Audio API
+    function playPopSound() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+
+        // short click
+        const o1 = ctx.createOscillator();
+        const g1 = ctx.createGain();
+        o1.type = 'triangle';
+        o1.frequency.setValueAtTime(720, now);
+        g1.gain.setValueAtTime(0, now);
+        g1.gain.linearRampToValueAtTime(0.18, now + 0.005);
+        g1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        o1.connect(g1);
+        g1.connect(ctx.destination);
+        o1.start(now);
+        o1.stop(now + 0.26);
+
+        // bubbly higher harmonic
+        const o2 = ctx.createOscillator();
+        const g2 = ctx.createGain();
+        o2.type = 'sine';
+        o2.frequency.setValueAtTime(1200, now);
+        g2.gain.setValueAtTime(0, now);
+        g2.gain.linearRampToValueAtTime(0.08, now + 0.01);
+        g2.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        o2.connect(g2);
+        g2.connect(ctx.destination);
+        o2.start(now);
+        o2.stop(now + 0.6);
+
+        // release AudioContext after sounds finish
+        setTimeout(() => { try { ctx.close(); } catch(e){} }, 1200);
+      } catch (e) {
+        // silent fallback
+        console.warn('Audio not supported', e);
+      }
+    }
+  </script>
